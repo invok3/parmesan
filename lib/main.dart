@@ -82,7 +82,7 @@ class MandelbrotViewer extends StatelessWidget {
             child: Center(
               child: Selector<MandelbrotController, String>(
                 selector: (_, c) => c.computeTime,
-                builder: (_, computeTime, __) => Text(
+                builder: (_, computeTime, _) => Text(
                   computeTime,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -108,7 +108,7 @@ class MandelbrotViewer extends StatelessWidget {
               Expanded(
                 child: Selector<MandelbrotController, (bool, ui.Image?)>(
                   selector: (_, c) => (c.isComputing, c.renderedImage),
-                  builder: (_, state, __) {
+                  builder: (_, state, _) {
                     final (isComputing, renderedImage) = state;
                     if (isComputing) {
                       return const Center(child: CircularProgressIndicator());
@@ -147,7 +147,7 @@ class MandelbrotViewer extends StatelessWidget {
                     ),
                     Selector<MandelbrotController, int>(
                       selector: (_, c) => c.maxIterations,
-                      builder: (_, iterations, __) => ElevatedButton.icon(
+                      builder: (_, iterations, _) => ElevatedButton.icon(
                         onPressed: () => context.read<MandelbrotController>().increaseIterations(),
                         icon: const Icon(Icons.add),
                         label: Text('Iterations ($iterations)'),
@@ -155,7 +155,7 @@ class MandelbrotViewer extends StatelessWidget {
                     ),
                     Selector<MandelbrotController, int>(
                       selector: (_, c) => c.maxIterations,
-                      builder: (_, iterations, __) => ElevatedButton.icon(
+                      builder: (_, iterations, _) => ElevatedButton.icon(
                         onPressed: () => context.read<MandelbrotController>().decreaseIterations(),
                         icon: const Icon(Icons.remove),
                         label: Text('Iterations ($iterations)'),
