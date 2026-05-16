@@ -2,6 +2,8 @@
 
 A cross-platform application architecture that uses **Flutter** as the front-end UI layer and **C++** as the high-performance back-end, connected via **Dart FFI** (Foreign Function Interface).
 
+This project demonstrates the pattern with a **Mandelbrot set fractal renderer** — Flutter handles the UI (zoom, pan, controls) while C++ does the heavy pixel computation.
+
 ## Architecture Overview
 
 ```
@@ -11,7 +13,8 @@ A cross-platform application architecture that uses **Flutter** as the front-end
 │                                                      │
 │  ┌───────────────────────────────────────────────┐  │
 │  │              Dart FFI Bindings                 │  │
-│  │   bridge_initialize()  bridge_db_update()     │  │
+│  │   bridge_initialize()                         │  │
+│  │   bridge_compute_mandelbrot(...)              │  │
 │  └──────────────────────┬────────────────────────┘  │
 └─────────────────────────┼───────────────────────────┘
                           │ FFI Boundary
@@ -30,9 +33,9 @@ A cross-platform application architecture that uses **Flutter** as the front-end
 │                                                      │
 │  ┌─────────────────────────────────────────────┐    │
 │  │         Dynamic Module Loading               │    │
-│  │  modules/dbHandler.dll  (Windows)            │    │
-│  │  modules/libdbHandler.so  (Linux)            │    │
-│  │  modules/libdbHandler.dylib (macOS)          │    │
+│  │  modules/mandelbrot.dll  (Windows)           │    │
+│  │  modules/libmandelbrot.so  (Linux)           │    │
+│  │  modules/libmandelbrot.dylib (macOS)         │    │
 │  └─────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────┘
 ```
@@ -42,14 +45,15 @@ A cross-platform application architecture that uses **Flutter** as the front-end
 ```
 parmesan/
 ├── lib/                          # Flutter/Dart source
-│   └── main.dart                 # App entry point, FFI bindings
+│   ├── main.dart                 # App entry point, FFI bindings, UI
+│   └── mandelbrot_controller.dart # State management (ChangeNotifier)
 ├── src/                          # C++ back-end source
 │   ├── bridge/                   # Core FFI bridge (compiled into main executable)
 │   │   ├── bridge.h              # Bridge header: FFI exports, ModuleBridge class
 │   │   └── bridge.cpp            # Bridge implementation: module loading, FFI entry points
-│   └── dbHandler/                # Example C++ module (compiled to dynamic library)
-│       ├── db_handler.cpp        # Module implementation
-│       └── db_handler.h          # Module header
+│   └── mandelbrot/               # Mandelbrot computation module (compiled to dynamic library)
+│       ├── mandelbrot.h          # Module header: compute_mandelbrot export
+│       └── mandelbrot.cpp        # Mandelbrot set computation with HSV coloring
 ├── windows/
 │   └── runner/
 │       └── CMakeLists.txt        # Windows build: links bridge, builds modules as DLLs
@@ -79,13 +83,15 @@ Each back-end feature is a separate C++ module compiled as a platform-specific d
 | Linux    | `.so`     | `modules/` next to executable |
 | macOS    | `.dylib`  | `modules/` next to executable |
 
-Modules are discovered and loaded by the bridge at application startup via `bridge_initialize()`.
+Modules are loaded by the bridge at application startup via `bridge_initialize()`.
 
 ### 3. FFI Communication Flow
 
 ```
 Dart UI → bridge_initialize() → Bridge loads all modules
-Dart UI → bridge_db_update(id, payload) → Bridge calls cached function pointer → Module executes
+Dart UI → bridge_compute_mandelbrot(buffer, width, height, centerX, centerY, zoom, maxIterations)
+         → Bridge calls cached function pointer → mandelbrot.dll fills pixel buffer
+         → Dart decodes raw RGBA → RawImage widget displays
 ```
 
 ## Use Cases
@@ -96,7 +102,7 @@ Dart UI → bridge_db_update(id, payload) → Bridge calls cached function point
 - **Code reuse across platforms**: Share C++ business logic across Flutter mobile, desktop, and web (via WASM)
 - **Legacy C++ integration**: Wrap existing C++ codebases with a modern Flutter front-end
 - **Modular back-end**: Independent modules can be updated/replaced without recompiling the main application
-- **High-performance data processing**: Database operations, signal processing, image manipulation, etc.
+- **High-performance data processing**: Fractal rendering, signal processing, image manipulation, etc.
 
 ### Example Applications
 
@@ -124,7 +130,7 @@ flutter build windows
 
 The CMake configuration in `windows/runner/CMakeLists.txt` automatically:
 1. Compiles `bridge.cpp` into the main executable
-2. Builds each folder under `src/` (except `bridge/`) as a separate DLL
+2. Builds each folder under `src/` (except `bridge/`) as a separate DLL into `modules/`
 
 #### Linux / macOS
 
@@ -133,7 +139,7 @@ Configuration for these platforms follows the same pattern. Add corresponding `C
 ### Running
 
 1. Build the project
-2. Ensure the `modules/` directory with compiled DLLs is next to the executable
+2. Ensure the `modules/` directory with compiled DLLs is next to the executable (CMake handles this automatically)
 3. Run the Flutter app
 
 ## How to Edit This Project
@@ -174,7 +180,7 @@ Configuration for these platforms follows the same pattern. Add corresponding `C
 4. **Load the module** (`src/bridge/bridge.cpp`):
    ```cpp
    bool ModuleBridge::load_all_modules() {
-       // ... existing db_handler loading ...
+       // ... existing module loading ...
 
        // Load new module
        if (my_new_module_handle == nullptr) {
@@ -207,31 +213,21 @@ Configuration for these platforms follows the same pattern. Add corresponding `C
    }
    ```
 
-7. **Add Dart FFI bindings** (`lib/main.dart`):
+7. **Add Dart FFI bindings** (`lib/main.dart` or a dedicated bindings file):
    ```dart
    import 'dart:ffi';
-   import 'dart:io';
+   import 'package:flutter/material.dart';
+   import 'package:provider/provider.dart';
 
-   // Define the function signature
    typedef BridgeMyNewFunctionC = Int32 Function(Int32 input);
    typedef BridgeMyNewFunctionDart = int Function(int input);
 
-   // Load the native library
-   final DynamicLibrary nativeLib = Platform.isWindows
-       ? DynamicLibrary.open('parmesan.exe') // Bridge is compiled into the exe
-       : DynamicLibrary.process();
+   final DynamicLibrary nativeLib = DynamicLibrary.open('parmesan.exe');
 
    final BridgeMyNewFunctionDart bridgeMyNewFunction = nativeLib
        .lookupFunction<BridgeMyNewFunctionC, BridgeMyNewFunctionDart>(
            'bridge_my_new_function',
        );
-
-   // Use in your Dart code
-   void main() {
-     bridgeInitialize(); // Call at app startup
-     final result = bridgeMyNewFunction(42);
-     print('Result: $result'); // 84
-   }
    ```
 
 ### Modifying an Existing Module
@@ -257,6 +253,7 @@ Configuration for these platforms follows the same pattern. Add corresponding `C
 | Singleton pattern | Single point of module management, prevents duplicate loads |
 | `extern "C"` FFI exports | Name stability, no C++ name mangling issues |
 | Fail-fast on module load errors | Immediate feedback if a module is missing or malformed |
+| Provider for state management | Fine-grained rebuilds, separation of concerns, testable |
 
 ## Platform Support
 
