@@ -9,15 +9,15 @@
     #define FFI_EXPORT extern "C" __attribute__((visibility("default"))) __attribute__((used))
 #endif
 
-// Predefined function signature for the database update method
-typedef int (*DbUpdateFunc)(int32_t record_id, int32_t payload);
+// Predefined function signature for the mandelbrot computation
+typedef void (*MandelbrotFunc)(uint8_t* buffer, int width, int height, double center_x, double center_y, double zoom, int max_iterations);
 
 class ModuleBridge {
 private:
-    HMODULE db_handler_handle = nullptr;
-    
+    HMODULE mandelbrot_handle = nullptr;
+
     // Cached function pointers to avoid calling GetProcAddress repeatedly
-    DbUpdateFunc db_update_ptr = nullptr;
+    MandelbrotFunc mandelbrot_ptr = nullptr;
 
     ModuleBridge() = default;
 
@@ -35,9 +35,9 @@ public:
     void unload_all();
 
     // 2nd) Predefined getter for execution
-    DbUpdateFunc get_db_update() const { return db_update_ptr; }
+    MandelbrotFunc get_mandelbrot() const { return mandelbrot_ptr; }
 };
 
 // Purely type-safe, explicit FFI entry points for Flutter
 FFI_EXPORT bool bridge_initialize();
-FFI_EXPORT int bridge_db_update(int32_t record_id, int32_t payload);
+FFI_EXPORT void bridge_compute_mandelbrot(uint8_t* buffer, int width, int height, double center_x, double center_y, double zoom, int max_iterations);

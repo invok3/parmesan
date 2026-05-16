@@ -62,6 +62,10 @@ foreach(CHILD ${CHILDREN})
         if(MODULE_SOURCES)
             add_library(${CHILD} SHARED ${MODULE_SOURCES})
             target_include_directories(${CHILD} PRIVATE "${SOURCES_DIR}")
+            set_target_properties(${CHILD} PROPERTIES
+                LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>/modules"
+                RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>/modules"
+            )
         endif()
     endif()
 endforeach()
