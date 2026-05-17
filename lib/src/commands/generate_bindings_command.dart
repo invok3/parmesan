@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import '../generators/bridge_generator.dart';
 import '../utils/file_utils.dart';
+import '../utils/package_path_resolver.dart';
 import '../validators/project_validator.dart';
 
 class GenerateBindingsCommand extends Command<int> {
@@ -86,29 +86,7 @@ class GenerateBindingsCommand extends Command<int> {
   }
 
   Future<String> _loadTemplate(String projectPath, String path) async {
-    final scriptDir = p.dirname(Platform.script.toFilePath());
-    final packageConfigPath = p.join(scriptDir, '..', '..', '..', 'package_config.json');
-    final normalizedPath = p.normalize(packageConfigPath);
-    final packageConfigFile = File(normalizedPath);
-
-    String templatesDir;
-    if (packageConfigFile.existsSync()) {
-      final json = jsonDecode(packageConfigFile.readAsStringSync());
-      for (final pkg in json['packages'] as List) {
-        if (pkg['name'] == 'parmesan') {
-          var rootUri = pkg['rootUri'] as String;
-          if (rootUri.startsWith('file://')) {
-            rootUri = rootUri.substring(7);
-          } else if (rootUri.startsWith('../') || rootUri.startsWith('./')) {
-            rootUri = p.normalize(p.join(p.dirname(normalizedPath), rootUri));
-          }
-          templatesDir = p.join(rootUri, 'lib', 'src', 'templates');
-          return await File(p.join(templatesDir, path)).readAsString();
-        }
-      }
-    }
-
-    final fallbackDir = p.join(scriptDir, '..', 'lib', 'src', 'templates');
-    return await File(p.join(fallbackDir, path)).readAsString();
+    final templatesDir = PackagePathResolver.resolveTemplatesDir();
+    return await File(p.join(templatesDir, path)).readAsString();
   }
 }

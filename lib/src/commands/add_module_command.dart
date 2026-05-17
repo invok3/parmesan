@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import '../templates/template_engine.dart';
 import '../utils/file_utils.dart';
+import '../utils/package_path_resolver.dart';
 import '../utils/string_utils.dart';
 
 class AddModuleCommand extends Command<int> {
@@ -276,29 +276,7 @@ endforeach()
     return await File(templatePath).readAsString();
   }
 
-  String get _templatesDir {
-    final scriptDir = p.dirname(Platform.script.toFilePath());
-    final packageConfigPath = p.join(scriptDir, '..', '..', '..', 'package_config.json');
-    final normalizedPath = p.normalize(packageConfigPath);
-    final packageConfigFile = File(normalizedPath);
-    if (packageConfigFile.existsSync()) {
-      final packageConfig = jsonDecode(packageConfigFile.readAsStringSync());
-      for (final pkg in packageConfig['packages'] as List) {
-        if (pkg['name'] == 'parmesan') {
-          var rootUri = pkg['rootUri'] as String;
-          if (rootUri.startsWith('file://')) {
-            rootUri = rootUri.substring(7);
-          } else if (rootUri.startsWith('../') || rootUri.startsWith('./')) {
-            final packageConfigDir = p.dirname(normalizedPath);
-            rootUri = p.normalize(p.join(packageConfigDir, rootUri));
-          }
-          return p.join(rootUri, 'lib', 'src', 'templates');
-        }
-      }
-    }
-    final currentDir = p.dirname(Platform.script.toFilePath());
-    return p.join(currentDir, '..', 'lib', 'src', 'templates');
-  }
+  String get _templatesDir => PackagePathResolver.resolveTemplatesDir();
 }
 
 class ModuleFunction {
