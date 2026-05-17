@@ -1,7 +1,7 @@
 name: parmesan
 description: "CLI tool to scaffold Flutter + C++ FFI projects"
 version: 0.1.0
-repository: https://github.com/your-org/parmesan
+repository: https://github.com/invok3/parmesan
 
 environment:
   sdk: ^3.11.5
