@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Fixed template path resolution on Windows when installed from pub.dev (`file://` URI parsing)
+
 ## 0.2.0
 
 - Expanded package description in pubspec.yaml
