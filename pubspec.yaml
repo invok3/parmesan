@@ -1,6 +1,6 @@
 name: parmesan
-description: "CLI tool to scaffold Flutter + C++ FFI projects"
-version: 0.1.0
+description: "A CLI tool that scaffolds Flutter + C++ FFI projects with automatic Dart binding generation, module management, and cross-platform CMake configuration for Windows and Linux."
+version: 0.2.0
 repository: https://github.com/invok3/parmesan
 
 environment:
@@ -13,3 +13,7 @@ dependencies:
 dev_dependencies:
   test: ^1.31.1
   lints: ^6.1.0
+
+platforms:
+  linux:
+  windows:

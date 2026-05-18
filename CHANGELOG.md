@@ -1,3 +1,10 @@
+## 0.2.0
+
+- Expanded package description in pubspec.yaml
+- Updated platform support documentation with detailed macOS incompatibility explanation
+- Added Android and Web platform entries (theoretical support, not officially tested)
+- Clarified that Parmesan is designed and tested specifically for desktop applications
+
 ## 0.1.0
 
 - Initial release

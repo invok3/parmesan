@@ -23,7 +23,11 @@ CLI tool to scaffold Flutter + C++ FFI projects.
 |----------|-----------|-------|
 | Windows  | Yes       | MSVC compiler, CMake |
 | Linux    | Yes       | GCC/Clang compiler, CMake |
-| macOS    | No        | macOS requires C++ code to be built within Xcode IDE. Parmesan's CLI-based workflow is not compatible with macOS's build requirements. |
+| macOS    | No        | macOS does not use CMake for compilation. Xcode requires source files to be added through its IDE and does not handle external edits gracefully, making Parmesan's CLI-based workflow incompatible. |
+| Android  | Theoretical | Possible in theory, but not tested or officially supported. |
+| Web      | Theoretical | Possible in theory, but not tested or officially supported. |
+
+> **Note:** Parmesan is designed and tested specifically for desktop applications. While Android and Web support is theoretically possible, this package is meant and tested for desktop apps.
 
 ## Usage
 
