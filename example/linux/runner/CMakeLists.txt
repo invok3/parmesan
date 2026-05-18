@@ -7,9 +7,6 @@ project(runner LANGUAGES CXX)
 #
 # Any new source files that you add to the application should be added here.
 add_executable(${BINARY_NAME}
-  "../../src/bridge/bridge.h"
-  "../../src/bridge/bridge.cpp"
-  # PARMESAN_BRIDGE_SOURCES
   "main.cc"
   "my_application.cc"
   "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
@@ -27,32 +24,3 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
-
-# PARMESAN_MODULE_LOOP - Auto-discover and build C++ modules
-set(PARMESAN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
-
-file(GLOB CHILDREN RELATIVE "${PARMESAN_SOURCES}" "${PARMESAN_SOURCES}/*")
-
-foreach(CHILD ${CHILDREN})
-    if(CHILD STREQUAL "bridge")
-        continue()
-    endif()
-
-    set(MODULE_PATH "${PARMESAN_SOURCES}/${CHILD}")
-
-    if(IS_DIRECTORY "${MODULE_PATH}")
-        file(GLOB_RECURSE MODULE_SOURCES
-            "${MODULE_PATH}/*.cpp"
-            "${MODULE_PATH}/*.h"
-        )
-
-        if(MODULE_SOURCES)
-            add_library(${CHILD} SHARED ${MODULE_SOURCES})
-            target_include_directories(${CHILD} PRIVATE "${PARMESAN_SOURCES}")
-            set_target_properties(${CHILD} PROPERTIES
-                LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>/modules"
-                RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>/modules"
-            )
-        endif()
-    endif()
-endforeach()

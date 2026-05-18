@@ -21,7 +21,7 @@ class PackagePathResolver {
           if (pkg['name'] == 'parmesan') {
             var rootUri = pkg['rootUri'] as String;
             if (rootUri.startsWith('file://')) {
-              rootUri = rootUri.substring(7);
+              rootUri = Uri.parse(rootUri).toFilePath();
             } else if (rootUri.startsWith('../') || rootUri.startsWith('./')) {
               final packageConfigDir = p.dirname(normalized);
               rootUri = p.normalize(p.join(packageConfigDir, rootUri));

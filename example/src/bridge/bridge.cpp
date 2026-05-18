@@ -64,28 +64,17 @@ void ModuleBridge::unload_module(ModuleHandle handle) {
 }
 
 bool ModuleBridge::load_all_modules() {
-    // mandelbrot
-    mandelbrot_handle = load_module("modules/mandelbrot");
-    if (!mandelbrot_handle) {
-        std::cerr << "Failed to load module: mandelbrot" << std::endl;
-        return false;
-    }
+{{MODULE_LOADS}}
 
     std::cout << "All modules loaded successfully" << std::endl;
     return true;
 }
 
 void ModuleBridge::unload_all_modules() {
-    unload_module(mandelbrot_handle);
+{{MODULE_UNLOADS}}
 }
 
-mandelbrot_module_process_fn ModuleBridge::get_mandelbrot_module_process() {
-    return (mandelbrot_module_process_fn)resolve_symbol(mandelbrot_handle, "module_process");
-}
-
-mandelbrot_compute_mandelbrot_fn ModuleBridge::get_mandelbrot_compute_mandelbrot() {
-    return (mandelbrot_compute_mandelbrot_fn)resolve_symbol(mandelbrot_handle, "compute_mandelbrot");
-}
+{{MODULE_GETTERS_IMPLS}}
 
 // FFI entry points
 FFI_EXPORT int bridge_initialize() {
@@ -95,10 +84,4 @@ FFI_EXPORT int bridge_initialize() {
     return 0;
 }
 
-FFI_EXPORT int32_t parmesan_mandelbrot_module_process(int32_t input) {
-    return ModuleBridge::instance().get_mandelbrot_module_process()(input);
-}
-
-FFI_EXPORT void parmesan_mandelbrot_compute_mandelbrot(uint8_t* buffer, int width, int height, double center_x, double center_y, double zoom, int max_iterations) {
-    ModuleBridge::instance().get_mandelbrot_compute_mandelbrot()(buffer, width, height, center_x, center_y, zoom, max_iterations);
-}
+{{FFI_IMPLS}}

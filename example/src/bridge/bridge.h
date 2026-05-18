@@ -19,8 +19,7 @@ typedef void* ModuleHandle;
 #include <iostream>
 
 // Module function pointer typedefs
-typedef int32_t (*mandelbrot_module_process_fn)(int32_t input);
-typedef void (*mandelbrot_compute_mandelbrot_fn)(uint8_t* buffer, int width, int height, double center_x, double center_y, double zoom, int max_iterations);
+{{MODULE_TYPEDEFS}}
 
 class ModuleBridge {
 public:
@@ -29,9 +28,7 @@ public:
     bool load_all_modules();
     void unload_all_modules();
 
-    mandelbrot_module_process_fn get_mandelbrot_module_process();
-
-    mandelbrot_compute_mandelbrot_fn get_mandelbrot_compute_mandelbrot();
+{{MODULE_GETTERS}}
 
 private:
     ModuleBridge();
@@ -43,14 +40,12 @@ private:
     void* resolve_symbol(ModuleHandle handle, const std::string& symbol);
     void unload_module(ModuleHandle handle);
 
-    ModuleHandle mandelbrot_handle;
+{{MODULE_HANDLES}}
 };
 
 // FFI entry points
 FFI_EXPORT int bridge_initialize();
 
-    FFI_EXPORT int32_t parmesan_mandelbrot_module_process(int32_t input);
-
-    FFI_EXPORT void parmesan_mandelbrot_compute_mandelbrot(uint8_t* buffer, int width, int height, double center_x, double center_y, double zoom, int max_iterations);
+{{FFI_EXPORTS}}
 
 #endif // BRIDGE_H

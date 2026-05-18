@@ -41,32 +41,3 @@ target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
-
-# PARMESAN_MODULE_LOOP - Auto-discover and build C++ modules
-set(PARMESAN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
-
-file(GLOB CHILDREN RELATIVE "${PARMESAN_SOURCES}" "${PARMESAN_SOURCES}/*")
-
-foreach(CHILD ${CHILDREN})
-    if(CHILD STREQUAL "bridge")
-        continue()
-    endif()
-
-    set(MODULE_PATH "${PARMESAN_SOURCES}/${CHILD}")
-
-    if(IS_DIRECTORY "${MODULE_PATH}")
-        file(GLOB_RECURSE MODULE_SOURCES
-            "${MODULE_PATH}/*.cpp"
-            "${MODULE_PATH}/*.h"
-        )
-
-        if(MODULE_SOURCES)
-            add_library(${CHILD} SHARED ${MODULE_SOURCES})
-            target_include_directories(${CHILD} PRIVATE "${PARMESAN_SOURCES}")
-            set_target_properties(${CHILD} PROPERTIES
-                LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>/modules"
-                RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>/modules"
-            )
-        endif()
-    endif()
-endforeach()
